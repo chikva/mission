@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome to the Secret Portal</h2>
+        <form id="upload-form">
+            <div class="input-container">
+                <label for="text-input">Text Upload</label>
+                <textarea id="text-input" name="text-input" rows="4" placeholder="Enter your text here..." required></textarea>
+            </div>
+            <div class="input-container">
+                <label for="file-upload">Photo Upload</label>
+                <input type="file" id="file-upload" name="file-upload" accept="image/*" required>
+            </div>
+            <button type="submit">Upload</button>
+            <div id="upload-message" class="error-message"></div>
+        </form>
+        <div id="uploaded-content" class="uploaded-content">
+            <h3>Uploaded Content</h3>
+            <div id="uploaded-text" class="uploaded-text"></div>
+            <div id="uploaded-photo" class="uploaded-photo"></div>
+        </div>
+    </div>
+
+    <script src="upload.js"></script>
+</body>
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBp7oS3gUpMzPOhyD4sAifXc2W65EqMoiw",
+  authDomain: "mission-6cb34.firebaseapp.com",
+  databaseURL: "https://mission-6cb34-default-rtdb.firebaseio.com",
+  projectId: "mission-6cb34",
+  storageBucket: "mission-6cb34.appspot.com",
+  messagingSenderId: "737331310215",
+  appId: "1:737331310215:web:61a99ae636095469c49222",
+  measurementId: "G-9ZQ9NF8X8G"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function uploadData() {
+        const text = document.getElementById('textInput').value;
+        const imageFile = document.getElementById('imageInput').files[0];
+
+        if (text || imageFile) {
+            const newPostRef = db.ref('uploads').push();
+            newPostRef.set({
+                text: text,
+                imageUrl: imageFile ? URL.createObjectURL(imageFile) : ''
+            }).then(() => {
+                alert('Upload successful!');
+                // Clear form fields
+                document.getElementById('textInput').value = '';
+                document.getElementById('imageInput').value = '';
+            }).catch((error) => {
+                console.error('Error uploading data:', error);
+            });
+        } else {
+            alert('Please provide text or an image to upload.');
+        }
+    }
+</script>
+</html>
+
+<style>
+
+    /* General Styles */
+body {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #121212;
+    color: #00ff00; /* Green text to mimic old-school terminals */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-image: radial-gradient(circle at center, #121212, #000000);
+    overflow: hidden; /* Prevents scrolling on smaller screens */
+}
+
+.container {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); /* Neon glow effect */
+    width: 100%; /* Full width on small screens */
+    max-width: 1000px; /* Max width for larger screens */
+    display: flex; /* Flexbox to align form and content side by side */
+    gap: 20px;
+    box-sizing: border-box; /* Includes padding and border in element’s total width and height */
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #00ff00;
+    font-size: 2rem; /* Responsive font size */
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.input-container {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    font-size: 1rem; /* Responsive font size */
+    margin-bottom: 8px;
+    color: #00ff00;
+}
+
+textarea,
+input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: 2px solid #00ff00;
+    border-radius: 4px;
+    background-color: #000000;
+    color: #00ff00;
+    font-size: 1rem; /* Responsive font size */
+    box-sizing: border-box; /* Includes padding and border in element’s total width and height */
+}
+
+textarea {
+    resize: vertical; /* Allows vertical resizing only */
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #000000;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem; /* Responsive font size */
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+    margin-top: 10px;
+    box-sizing: border-box; /* Includes padding and border in element’s total width and height */
+}
+
+button:hover {
+    background-color: #00ff00;
+    color: #000000;
+    border-color: #ff0000;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+    background-color: #ff0000;
+    color: #ffffff;
+    border-color: #ff0000;
+}
+
+#error-message {
+    color: #ff0000;
+    margin-top: 15px;
+    font-size: 1rem; /* Responsive font size */
+    animation: blink 1s infinite;
+}
+
+/* Uploaded Content Styles */
+.uploaded-content {
+    width: 100%;
+    max-width: 400px; /* Max width for the content area */
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); /* Neon glow effect */
+    box-sizing: border-box; /* Includes padding and border in element’s total width and height */
+    color: #00ff00;
+}
+
+.uploaded-text {
+    margin-bottom: 20px;
+    white-space: pre-wrap; /* Preserve whitespace for the text */
+    border: 2px solid #00ff00;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.uploaded-photo img {
+    max-width: 100%;
+    height: auto;
+    border: 2px solid #00ff00;
+    border-radius: 4px;
+}
+
+/* Delete Button Styles */
+.delete-button {
+    background-color: #ff0000;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    margin-left: 10px;
+}
+
+.delete-button:hover {
+    background-color: #cc0000;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+        flex-direction: column; /* Stack form and content vertically on small screens */
+        gap: 10px;
+    }
+
+    h2 {
+        font-size: 1.5rem; /* Smaller font size on smaller screens */
+    }
+
+    button {
+        font-size: 0.875rem; /* Smaller button text */
+    }
+
+    textarea,
+    input[type="file"] {
+        font-size: 0.875rem; /* Smaller input text */
+        padding: 10px;
+    }
+
+    .uploaded-content {
+        max-width: 100%; /* Full width on smaller screens */
+    }
+}
+
+</style>
+
+<script>
+
+document.getElementById('upload-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevents the default form submission
+
+    const textInput = document.getElementById('text-input').value;
+    const fileInput = document.getElementById('file-upload').files[0];
+    const uploadMessage = document.getElementById('upload-message');
+    const uploadedText = document.getElementById('uploaded-text');
+    const uploadedPhoto = document.getElementById('uploaded-photo');
+
+    // Clear previous content
+    uploadedText.innerHTML = ''; // Clear content and buttons
+    uploadedPhoto.innerHTML = ''; // Clear content and buttons
+
+    if (textInput && fileInput) {
+        // Display success message
+        uploadMessage.textContent = 'Upload Successful!';
+        uploadMessage.style.color = '#00ff00'; // Green text for success
+
+        // Save uploaded text to localStorage
+        localStorage.setItem('uploadedText', textInput);
+
+        // Display uploaded text
+        const textDiv = document.createElement('div');
+        textDiv.textContent = textInput;
+
+        // Create delete button for text
+        const deleteTextButton = document.createElement('button');
+        deleteTextButton.textContent = 'Delete';
+        deleteTextButton.className = 'delete-button';
+        deleteTextButton.onclick = function() {
+            uploadedText.innerHTML = ''; // Clear text content
+            localStorage.removeItem('uploadedText'); // Remove from localStorage
+        };
+        textDiv.appendChild(deleteTextButton);
+        uploadedText.appendChild(textDiv);
+
+        // Display uploaded photo
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+
+            // Save uploaded photo to localStorage
+            localStorage.setItem('uploadedPhoto', e.target.result);
+
+            // Create delete button for photo
+            const deletePhotoButton = document.createElement('button');
+            deletePhotoButton.textContent = 'Delete';
+            deletePhotoButton.className = 'delete-button';
+            deletePhotoButton.onclick = function() {
+                uploadedPhoto.innerHTML = ''; // Clear photo content
+                localStorage.removeItem('uploadedPhoto'); // Remove from localStorage
+            };
+            uploadedPhoto.appendChild(img);
+            uploadedPhoto.appendChild(deletePhotoButton);
+        };
+        reader.readAsDataURL(fileInput);
+    } else {
+        // Display error message
+        uploadMessage.textContent = 'Please provide both text and a photo.';
+        uploadMessage.style.color = '#ff0000'; // Red text for error
+    }
+});
+
+
+</script>
