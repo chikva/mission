@@ -216,71 +216,102 @@ button:active {
 
 </style>
 
-<!-- <script>
+
+<script>
+    
+    
+    // upload.js
 
 document.getElementById('upload-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevents the default form submission
+    event.preventDefault();
 
     const textInput = document.getElementById('text-input').value;
     const fileInput = document.getElementById('file-upload').files[0];
-    const uploadMessage = document.getElementById('upload-message');
-    const uploadedText = document.getElementById('uploaded-text');
-    const uploadedPhoto = document.getElementById('uploaded-photo');
 
-    // Clear previous content
-    uploadedText.innerHTML = ''; // Clear content and buttons
-    uploadedPhoto.innerHTML = ''; // Clear content and buttons
+    if (textInput || fileInput) {
+        if (fileInput) {
+            // Upload image
+            const storageRef = storage.ref('images/' + fileInput.name);
+            const uploadTask = storageRef.put(fileInput);
 
-    if (textInput && fileInput) {
-        // Display success message
-        uploadMessage.textContent = 'Upload Successful!';
-        uploadMessage.style.color = '#00ff00'; // Green text for success
-
-        // Save uploaded text to localStorage
-        localStorage.setItem('uploadedText', textInput);
-
-        // Display uploaded text
-        const textDiv = document.createElement('div');
-        textDiv.textContent = textInput;
-
-        // Create delete button for text
-        const deleteTextButton = document.createElement('button');
-        deleteTextButton.textContent = 'Delete';
-        deleteTextButton.className = 'delete-button';
-        deleteTextButton.onclick = function() {
-            uploadedText.innerHTML = ''; // Clear text content
-            localStorage.removeItem('uploadedText'); // Remove from localStorage
-        };
-        textDiv.appendChild(deleteTextButton);
-        uploadedText.appendChild(textDiv);
-
-        // Display uploaded photo
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-
-            // Save uploaded photo to localStorage
-            localStorage.setItem('uploadedPhoto', e.target.result);
-
-            // Create delete button for photo
-            const deletePhotoButton = document.createElement('button');
-            deletePhotoButton.textContent = 'Delete';
-            deletePhotoButton.className = 'delete-button';
-            deletePhotoButton.onclick = function() {
-                uploadedPhoto.innerHTML = ''; // Clear photo content
-                localStorage.removeItem('uploadedPhoto'); // Remove from localStorage
-            };
-            uploadedPhoto.appendChild(img);
-            uploadedPhoto.appendChild(deletePhotoButton);
-        };
-        reader.readAsDataURL(fileInput);
+            uploadTask.on('state_changed', null, function(error) {
+                console.error('Upload failed:', error);
+            }, function() {
+                uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
+                    saveData(textInput, downloadURL);
+                });
+            });
+        } else {
+            saveData(textInput, null);
+        }
     } else {
-        // Display error message
-        uploadMessage.textContent = 'Please provide both text and a photo.';
-        uploadMessage.style.color = '#ff0000'; // Red text for error
+        document.getElementById('upload-message').innerText = 'Please provide text or an image.';
     }
 });
 
+function saveData(text, imageUrl) {
+    const newItemRef = database.ref('items').push();
+    newItemRef.set({
+        text: text,
+        imageUrl: imageUrl
+    }).then(() => {
+        document.getElementById('text-input').value = '';
+        document.getElementById('file-upload').value = '';
+        loadContent();
+    }).catch(error => {
+        console.error('Error saving data:', error);
+    });
+}
 
-</script> -->
+function loadContent() {
+    database.ref('items').on('value', function(snapshot) {
+        const uploadedTextContainer = document.getElementById('uploaded-text');
+        const uploadedPhotoContainer = document.getElementById('uploaded-photo');
+        uploadedTextContainer.innerHTML = '';
+        uploadedPhotoContainer.innerHTML = '';
+
+        snapshot.forEach(function(childSnapshot) {
+            const item = childSnapshot.val();
+            const itemId = childSnapshot.key;
+            
+            // Create and append text
+            if (item.text) {
+                const textDiv = document.createElement('div');
+                textDiv.innerText = item.text;
+                textDiv.className = 'text-item';
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.innerText = 'Delete';
+                deleteButton.onclick = function() {
+                    deleteItem(itemId);
+                };
+
+                textDiv.appendChild(deleteButton);
+                uploadedTextContainer.appendChild(textDiv);
+            }
+
+            // Create and append image
+            if (item.imageUrl) {
+                const img = document.createElement('img');
+                img.src = item.imageUrl;
+                img.className = 'uploaded-image';
+                uploadedPhotoContainer.appendChild(img);
+            }
+        });
+    });
+}
+
+function deleteItem(itemId) {
+    database.ref('items/' + itemId).remove().then(() => {
+        loadContent();
+    }).catch(error => {
+        console.error('Error deleting item:', error);
+    });
+}
+
+// Initial load
+loadContent();
+
+    <script>
+
